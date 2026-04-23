@@ -23,7 +23,10 @@ BASE_URL = "http://localhost:8000"
 
 @router.post("/api/qr/create", response_model=CreateResponse)
 def create_qr(req: CreateRequest, db: Session = Depends(get_db)):
-    normalized_url = validate_url(req.url)
+    try:                                                                                                                                                           
+        normalized_url = validate_url(req.url)                
+    except ValueError as e:                                                                                                                                        
+        raise HTTPException(status_code=422, detail=str(e))
     token = generate_token(normalized_url, db)
 
     mapping = UrlMapping(
