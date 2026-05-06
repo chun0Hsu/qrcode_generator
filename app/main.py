@@ -1,7 +1,9 @@
 import io
+import re
 from datetime import datetime, timezone
 
 import qrcode
+from qrcode.image.svg import SvgPathImage
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -105,14 +107,41 @@ def delete_qr(token: str, db: Session = Depends(get_db)):
 
 
 @app.get("/api/qr/{token}/image")
-def get_qr_image(token: str, db: Session = Depends(get_db)):
+def get_qr_image(
+    token: str,
+    fg: str = "111111",
+    bg: str = "ffffff",
+    ecc: str = "M",
+    format: str = "png",
+    db: Session = Depends(get_db),
+):
     _get_active_mapping(token, db)
-    img = qrcode.make(f"{BASE_URL}/r/{token}")
+    foreground = _normalize_hex_color(fg, "111111")
+    background = _normalize_hex_color(bg, "ffffff")
+    qr = qrcode.QRCode(
+        error_correction=_error_correction(ecc),
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(f"{BASE_URL}/r/{token}")
+    qr.make(fit=True)
 
     buf = io.BytesIO()
-    img.save(buf, format="PNG")
+    if format.lower() == "svg":
+        img = qr.make_image(
+            image_factory=SvgPathImage,
+            fill_color=foreground,
+            back_color=background,
+        )
+        img.save(buf)
+        media_type = "image/svg+xml"
+    else:
+        img = qr.make_image(fill_color=foreground, back_color=background)
+        img.save(buf, format="PNG")
+        media_type = "image/png"
+
     buf.seek(0)
-    return StreamingResponse(buf, media_type="image/png")
+    return StreamingResponse(buf, media_type=media_type)
 
 
 @app.get("/api/qr/{token}/analytics")
@@ -207,3 +236,20 @@ def _normalize_datetime(value: datetime | None) -> datetime | None:
     if value.tzinfo is None:
         return value
     return value.astimezone(timezone.utc).replace(tzinfo=None)
+
+
+def _normalize_hex_color(value: str, fallback: str) -> str:
+    clean = value.strip().removeprefix("#")
+    if not re.fullmatch(r"[0-9a-fA-F]{6}", clean):
+        clean = fallback
+    return f"#{clean.lower()}"
+
+
+def _error_correction(value: str) -> int:
+    levels = {
+        "L": qrcode.constants.ERROR_CORRECT_L,
+        "M": qrcode.constants.ERROR_CORRECT_M,
+        "Q": qrcode.constants.ERROR_CORRECT_Q,
+        "H": qrcode.constants.ERROR_CORRECT_H,
+    }
+    return levels.get(value.upper(), qrcode.constants.ERROR_CORRECT_M)

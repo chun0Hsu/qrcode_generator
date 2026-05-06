@@ -26,7 +26,7 @@ The app also includes a lightweight SPA served by FastAPI at `/`.
 - SQLAlchemy 2.x
 - SQLite
 - qrcode + Pillow
-- Vanilla HTML/CSS/JavaScript SPA
+- Tailwind CDN single-file SPA
 
 ## Project Structure
 
@@ -41,9 +41,7 @@ The app also includes a lightweight SPA served by FastAPI at `/`.
 |   |-- token_gen.py
 |   `-- url_validator.py
 |-- static/
-|   |-- app.js
-|   |-- index.html
-|   `-- styles.css
+|   `-- index.html
 |-- scaffold/
 |   `-- Guided-track reference implementation
 |-- PROMPT.md

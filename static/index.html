@@ -1,172 +1,827 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="bg-neutral-950 text-neutral-50">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#050505" />
+    <meta name="theme-color" content="#0a0a0a" />
     <title>QR Code Generator</title>
-    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: [
+                "Inter",
+                "ui-sans-serif",
+                "system-ui",
+                "-apple-system",
+                "BlinkMacSystemFont",
+                "Segoe UI",
+                "sans-serif",
+              ],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      :focus-visible {
+        outline: 2px solid #737373;
+        outline-offset: 2px;
+      }
+
+      .secondary-button {
+        height: 2.5rem;
+        border-radius: 0.25rem;
+        border: 1px solid rgb(38 38 38);
+        background: rgb(10 10 10);
+        padding-inline: 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: rgb(229 229 229);
+        transition: border-color 120ms ease, background 120ms ease;
+      }
+
+      .secondary-button:hover {
+        border-color: rgb(64 64 64);
+        background: rgb(23 23 23);
+      }
+
+      .icon-button {
+        display: inline-flex;
+        height: 2.25rem;
+        width: 2.25rem;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.25rem;
+        border: 1px solid rgb(38 38 38);
+        color: rgb(163 163 163);
+        transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+      }
+
+      .icon-button:hover {
+        border-color: rgb(64 64 64);
+        background: rgb(23 23 23);
+        color: rgb(245 245 245);
+      }
+
+      .icon-button svg {
+        height: 1rem;
+        width: 1rem;
+        fill: none;
+        stroke: currentColor;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 1.8;
+      }
+
+      input[type="color"] {
+        -webkit-appearance: none;
+        appearance: none;
+      }
+
+      input[type="color"]::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+
+      input[type="color"]::-webkit-color-swatch {
+        border: 0;
+        border-radius: 5px;
+      }
+
+      input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        filter: invert(1) opacity(0.7);
+      }
+
+      input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+        filter: invert(1) opacity(1);
+      }
+
+    </style>
   </head>
-  <body>
-    <main class="shell">
-      <header class="topbar">
-        <div class="product-lockup">
-          <div class="mark" aria-hidden="true">
-            <span></span><span></span><span></span><span></span>
+  <body class="min-h-screen bg-neutral-950 font-sans text-neutral-50 antialiased">
+    <main class="mx-auto flex min-h-screen w-full max-w-[1440px] flex-col px-5 py-6 sm:px-8 lg:px-10">
+      <header class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="grid h-8 w-8 grid-cols-2 gap-1 rounded bg-neutral-50 p-1.5 text-neutral-950" aria-hidden="true">
+            <span class="rounded-[1px] bg-current"></span>
+            <span class="rounded-[1px] bg-current"></span>
+            <span class="rounded-[1px] bg-current"></span>
+            <span class="rounded-[1px] bg-current"></span>
           </div>
           <div>
-            <span class="eyebrow">Dynamic QR</span>
-            <h1>QR Code Generator</h1>
+            <p class="text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-500">QR</p>
+            <h1 class="text-sm font-medium tracking-tight text-neutral-200">Generator</h1>
           </div>
         </div>
+        <p id="message" class="hidden max-w-sm truncate text-right text-sm font-medium text-neutral-400" role="status"></p>
       </header>
 
-      <section class="workspace" aria-label="QR code generator">
-        <div class="create-pane">
-          <div class="panel-heading">
-            <div>
-              <h2>Create</h2>
-              <p>Paste a URL. Get an editable QR code.</p>
-            </div>
-          </div>
-
-          <form id="create-form" class="stack">
-            <label class="field">
-              <span>Target URL</span>
-              <input
-                id="create-url"
-                name="url"
-                type="url"
-                inputmode="url"
-                placeholder="https://example.com"
-                required
-              />
-            </label>
-
-            <label class="field">
-              <span>Expiration</span>
-              <div class="input-action">
-                <input id="create-expiry" name="expires_at" type="datetime-local" />
-                <button id="clear-create-expiry" class="icon-button" type="button" title="Clear expiration" aria-label="Clear expiration">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
-                </button>
+      <section class="grid flex-1 gap-6 py-12 lg:grid-cols-[360px_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
+        <aside class="space-y-6">
+          <section class="rounded-md border border-neutral-800 bg-neutral-950 p-5">
+            <div class="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <p class="text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-500">01</p>
+                <h2 class="mt-1 text-sm font-medium text-neutral-100">URL</h2>
               </div>
-            </label>
+              <span class="rounded border border-neutral-800 px-2 py-1 text-[11px] text-neutral-500">302</span>
+            </div>
 
-            <button class="primary-button" type="submit">
-              Create QR
-            </button>
-          </form>
+            <form id="create-form" class="space-y-4">
+              <label class="block">
+                <span class="mb-1.5 block text-xs font-medium text-neutral-500">Target URL</span>
+                <input
+                  id="create-url"
+                  name="url"
+                  type="url"
+                  inputmode="url"
+                  autocomplete="url"
+                  placeholder="https://example.com"
+                  required
+                  class="h-11 w-full rounded border border-neutral-800 bg-neutral-950 px-3 text-sm text-neutral-100 placeholder:text-neutral-600 transition focus:border-neutral-500"
+                />
+              </label>
 
-          <div class="recent-block">
-            <div class="section-title">
-              <h2>Recent</h2>
-              <button id="clear-recent-button" class="icon-button subtle" type="button" title="Clear recent" aria-label="Clear recent">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14" /></svg>
+              <label class="block">
+                <span class="mb-1.5 block text-xs font-medium text-neutral-500">Expiration</span>
+                <div class="group flex gap-2">
+                  <input
+                    id="create-expiry"
+                    name="expires_at"
+                    type="datetime-local"
+                    placeholder="YYYY-MM-DD HH:MM"
+                    class="h-11 min-w-0 flex-1 rounded border border-neutral-800 bg-neutral-950 px-3 text-sm text-neutral-100 placeholder:text-neutral-600 transition focus:border-neutral-500"
+                  />
+                  <button
+                    id="clear-create-expiry"
+                    class="h-11 w-11 shrink-0 rounded border border-neutral-800 text-neutral-500 opacity-0 transition hover:border-neutral-700 hover:text-neutral-100 group-hover:opacity-100 group-focus-within:opacity-100"
+                    type="button"
+                    title="Clear expiration"
+                    aria-label="Clear expiration"
+                  >
+                    <svg class="mx-auto h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                      <path d="M18 6 6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </label>
+
+              <button class="h-11 w-full rounded bg-neutral-50 px-4 text-sm font-medium text-neutral-950 transition hover:bg-neutral-200" type="submit">
+                Create
+              </button>
+            </form>
+          </section>
+
+          <section class="rounded-md border border-neutral-800 bg-neutral-950 p-5">
+            <div class="mb-3 flex items-center justify-between">
+              <div>
+                <p class="text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-500">02</p>
+                <h2 class="mt-1 text-sm font-medium text-neutral-100">Recent</h2>
+              </div>
+              <button
+                id="clear-recent-button"
+                class="h-9 w-9 rounded border border-transparent text-neutral-600 transition hover:border-neutral-800 hover:text-neutral-200"
+                type="button"
+                title="Clear recent"
+                aria-label="Clear recent"
+              >
+                <svg class="mx-auto h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14" />
+                </svg>
               </button>
             </div>
-            <div id="recent-list" class="recent-list"></div>
-          </div>
-        </div>
-
-        <aside class="result-pane" aria-live="polite">
-          <div id="empty-state" class="empty-state">
-            <div class="qr-placeholder" aria-hidden="true">
-              <span></span><span></span><span></span><span></span>
-            </div>
-            <p>Your QR preview appears here.</p>
-          </div>
-
-          <div id="result-card" class="result-card hidden">
-            <div class="preview-header">
-              <span>Preview</span>
-              <span id="status-pill" class="status-pill">Active</span>
-            </div>
-            <div class="qr-frame">
-              <img id="qr-image" alt="Generated QR code" />
-            </div>
-            <div class="result-meta">
-              <h2 id="token-title">Token</h2>
-              <a id="short-url" href="#" target="_blank" rel="noreferrer"></a>
-              <p id="original-url"></p>
-              <div class="quick-actions" aria-label="QR code actions">
-                <button id="copy-url-button" class="icon-button inverse" type="button" title="Copy short URL" aria-label="Copy short URL">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1M14 11a5 5 0 0 0-7.1 0l-2 2A5 5 0 0 0 12 20.1l1.1-1.1" /></svg>
-                </button>
-                <button id="copy-token-button" class="icon-button inverse" type="button" title="Copy token" aria-label="Copy token">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h8v8H8zM4 12h4m8 0h4M12 4v4m0 8v4" /></svg>
-                </button>
-                <button id="download-button" class="icon-button inverse" type="button" title="Download PNG" aria-label="Download PNG">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" /></svg>
-                </button>
-              </div>
-            </div>
-          </div>
+            <div id="recent-list" class="space-y-1.5"></div>
+          </section>
         </aside>
-      </section>
 
-      <section class="manage-panel" aria-label="Manage existing QR code">
-        <div class="section-title">
-          <div>
-            <h2>Manage</h2>
-            <p>Paste a token or short URL.</p>
-          </div>
-        </div>
-
-        <div class="token-row">
-          <label class="field token-field">
-            <span>Token</span>
-            <input id="token-input" type="text" placeholder="Paste token or short URL" />
-          </label>
-          <button id="load-button" class="secondary-button" type="button">Load</button>
-          <button id="analytics-button" class="secondary-button" type="button">Analytics</button>
-          <button id="delete-button" class="danger-button" type="button">Delete</button>
-        </div>
-
-        <form id="update-form" class="update-grid">
-          <label class="field">
-            <span>New target URL</span>
-            <input id="update-url" type="url" inputmode="url" placeholder="https://new-url.com" />
-          </label>
-          <label class="field">
-            <span>New expiration</span>
-            <div class="input-action">
-              <input id="update-expiry" type="datetime-local" />
-              <button id="clear-update-expiry" class="icon-button" type="button" title="Remove expiration" aria-label="Remove expiration">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18M12 3v18" /></svg>
-              </button>
+        <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <section class="relative flex min-h-[680px] flex-col rounded-md border border-neutral-800 bg-neutral-950">
+            <div class="flex items-center justify-between border-b border-neutral-800 px-5 py-4">
+              <p class="text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-500">Output</p>
+              <span id="status-pill" class="hidden rounded border border-emerald-900/60 bg-emerald-950/30 px-2 py-1 text-[11px] font-medium text-emerald-300">
+                Active
+              </span>
             </div>
-          </label>
-          <button class="primary-button compact" type="submit">Update</button>
-        </form>
 
-        <div id="message" class="message" role="status"></div>
+            <div class="flex flex-1 items-center justify-center p-8 sm:p-10">
+              <div id="empty-state" class="grid justify-items-center gap-4 text-center">
+                <div class="grid h-48 w-48 grid-cols-2 gap-2 rounded border border-neutral-800 bg-neutral-950 p-8 text-neutral-800" aria-hidden="true">
+                  <span class="rounded-[2px] bg-current"></span>
+                  <span class="rounded-[2px] bg-current"></span>
+                  <span class="rounded-[2px] bg-current"></span>
+                  <span class="rounded-[2px] bg-current"></span>
+                </div>
+                <p class="max-w-56 text-sm text-neutral-500">No output.</p>
+              </div>
 
-        <div id="details" class="details hidden">
-          <div>
-            <span class="metric-label">Created</span>
-            <strong id="created-at">-</strong>
-          </div>
-          <div>
-            <span class="metric-label">Updated</span>
-            <strong id="updated-at">-</strong>
-          </div>
-          <div>
-            <span class="metric-label">Expires</span>
-            <strong id="expires-at">Never</strong>
-          </div>
-        </div>
+              <div id="result-card" class="hidden w-full max-w-xl">
+                <div class="group mx-auto grid justify-items-center gap-8">
+                  <div class="relative rounded border border-neutral-800 bg-white p-6">
+                    <img id="qr-image" class="h-[360px] w-[360px] object-contain" alt="Generated QR code" crossorigin="anonymous" />
+                    <img id="logo-preview" class="pointer-events-none absolute left-1/2 top-1/2 hidden h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded bg-white object-contain p-2" alt="" />
+                  </div>
 
-        <div id="analytics" class="analytics hidden">
-          <div>
-            <span class="metric-label">Total scans</span>
-            <strong id="total-scans">0</strong>
-          </div>
-          <div id="scan-days" class="scan-days"></div>
-        </div>
+                  <div class="w-full max-w-lg rounded border border-transparent px-4 py-3 text-center transition group-hover:border-neutral-800">
+                    <h2 id="token-title" class="font-mono text-3xl font-semibold tracking-[-0.03em] text-neutral-50">Token</h2>
+                    <a id="short-url" class="mt-2 block break-all text-sm font-medium text-neutral-300 hover:text-neutral-50" href="#" target="_blank" rel="noreferrer"></a>
+                    <p id="original-url" class="mt-1 break-all text-sm text-neutral-500"></p>
+                    <div class="mt-4 flex justify-center gap-2 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
+                      <button id="copy-url-button" class="icon-button" type="button" title="Copy short URL" aria-label="Copy short URL">
+                        <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1M14 11a5 5 0 0 0-7.1 0l-2 2A5 5 0 0 0 12 20.1l1.1-1.1" /></svg>
+                      </button>
+                      <button id="copy-token-button" class="icon-button" type="button" title="Copy token" aria-label="Copy token">
+                        <svg viewBox="0 0 24 24"><path d="M8 8h8v8H8zM4 12h4m8 0h4M12 4v4m0 8v4" /></svg>
+                      </button>
+                      <button id="download-png-button" class="icon-button" type="button" title="Download PNG" aria-label="Download PNG">
+                        <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" /></svg>
+                      </button>
+                      <button id="download-svg-button" class="icon-button" type="button" title="Download SVG" aria-label="Download SVG">
+                        <svg viewBox="0 0 24 24"><path d="M4 4h8l4 4v12H4zM12 4v5h5M8 15h5" /></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <aside class="space-y-4">
+            <section class="rounded-md border border-neutral-800 bg-neutral-950 p-5">
+              <div class="mb-4">
+                <p class="text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-500">Options</p>
+                <h2 class="mt-1 text-sm font-medium text-neutral-100">Visual</h2>
+              </div>
+
+              <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-2">
+                  <label class="block">
+                    <span class="mb-1.5 block text-xs font-medium text-neutral-500">Foreground</span>
+                    <input id="fg-color" type="color" value="#111111" class="h-10 w-full cursor-pointer rounded border border-neutral-800 bg-neutral-950 p-1" />
+                  </label>
+                  <label class="block">
+                    <span class="mb-1.5 block text-xs font-medium text-neutral-500">Background</span>
+                    <input id="bg-color" type="color" value="#ffffff" class="h-10 w-full cursor-pointer rounded border border-neutral-800 bg-neutral-950 p-1" />
+                  </label>
+                </div>
+
+                <label class="block">
+                  <span class="mb-1.5 block text-xs font-medium text-neutral-500">Error correction</span>
+                  <select id="ecc-level" class="h-10 w-full rounded border border-neutral-800 bg-neutral-950 px-3 text-sm text-neutral-100">
+                    <option value="L">Low</option>
+                    <option value="M" selected>Medium</option>
+                    <option value="Q">Quartile</option>
+                    <option value="H">High</option>
+                  </select>
+                </label>
+
+                <label class="block">
+                  <span class="mb-1.5 block text-xs font-medium text-neutral-500">Logo overlay</span>
+                  <input id="logo-input" type="file" accept="image/*" class="block w-full text-xs text-neutral-500 file:mr-3 file:h-9 file:rounded file:border-0 file:bg-neutral-900 file:px-3 file:text-xs file:font-medium file:text-neutral-200 hover:file:bg-neutral-800" />
+                </label>
+              </div>
+            </section>
+
+            <section class="rounded-md border border-neutral-800 bg-neutral-950 p-5">
+              <div class="mb-4">
+                <p class="text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-500">Record</p>
+                <h2 class="mt-1 text-sm font-medium text-neutral-100">Token</h2>
+              </div>
+
+              <div class="space-y-3">
+                <label class="block">
+                  <span class="mb-1.5 block text-xs font-medium text-neutral-500">Token</span>
+                  <input id="token-input" type="text" placeholder="Paste token or short URL" class="h-11 w-full rounded border border-neutral-800 bg-neutral-950 px-3 text-sm text-neutral-100 placeholder:text-neutral-600 transition focus:border-neutral-500" />
+                </label>
+
+                <div class="grid grid-cols-2 gap-2">
+                  <button id="load-button" class="secondary-button" type="button">Load</button>
+                  <button id="analytics-button" class="secondary-button" type="button">Analytics</button>
+                </div>
+                <button id="delete-button" class="h-10 w-full rounded border border-red-950/70 bg-red-950/20 px-3 text-sm font-medium text-red-200 transition hover:border-red-900 hover:bg-red-950/30" type="button">
+                  Delete
+                </button>
+              </div>
+            </section>
+
+            <section class="rounded-md border border-neutral-800 bg-neutral-950 p-5">
+              <div class="mb-4">
+                <p class="text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-500">Patch</p>
+                <h2 class="mt-1 text-sm font-medium text-neutral-100">URL</h2>
+              </div>
+
+              <form id="update-form" class="space-y-3">
+                <label class="block">
+                  <span class="mb-1.5 block text-xs font-medium text-neutral-500">New target URL</span>
+                  <input id="update-url" type="url" inputmode="url" autocomplete="url" placeholder="https://new-url.com" class="h-11 w-full rounded border border-neutral-800 bg-neutral-950 px-3 text-sm text-neutral-100 placeholder:text-neutral-600 transition focus:border-neutral-500" />
+                </label>
+                <label class="block">
+                  <span class="mb-1.5 block text-xs font-medium text-neutral-500">New expiration</span>
+                  <div class="group flex gap-2">
+                    <input id="update-expiry" type="datetime-local" placeholder="YYYY-MM-DD HH:MM" class="h-11 min-w-0 flex-1 rounded border border-neutral-800 bg-neutral-950 px-3 text-sm text-neutral-100 placeholder:text-neutral-600 transition focus:border-neutral-500" />
+                    <button id="clear-update-expiry" class="h-11 w-11 shrink-0 rounded border border-neutral-800 text-neutral-500 opacity-0 transition hover:border-neutral-700 hover:text-neutral-100 group-hover:opacity-100 group-focus-within:opacity-100" type="button" title="Remove expiration" aria-label="Remove expiration">
+                      <svg class="mx-auto h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h18M12 3v18" /></svg>
+                    </button>
+                  </div>
+                </label>
+                <button class="h-10 w-full rounded bg-neutral-50 px-3 text-sm font-medium text-neutral-950 transition hover:bg-neutral-200" type="submit">Update</button>
+              </form>
+            </section>
+
+            <section id="details" class="hidden rounded-md border border-neutral-800 bg-neutral-950 p-5">
+              <div class="grid grid-cols-3 gap-2 text-xs">
+                <div>
+                  <span class="text-neutral-500">Created</span>
+                  <strong id="created-at" class="mt-1 block break-words font-medium text-neutral-200">-</strong>
+                </div>
+                <div>
+                  <span class="text-neutral-500">Updated</span>
+                  <strong id="updated-at" class="mt-1 block break-words font-medium text-neutral-200">-</strong>
+                </div>
+                <div>
+                  <span class="text-neutral-500">Expires</span>
+                  <strong id="expires-at" class="mt-1 block break-words font-medium text-neutral-200">Never</strong>
+                </div>
+              </div>
+            </section>
+
+            <section id="analytics" class="hidden rounded-md border border-neutral-800 bg-neutral-950 p-5">
+              <div class="mb-3">
+                <span class="text-xs text-neutral-500">Total scans</span>
+                <strong id="total-scans" class="block text-3xl font-semibold text-neutral-100">0</strong>
+              </div>
+              <div id="scan-days" class="space-y-2"></div>
+            </section>
+          </aside>
+        </section>
       </section>
     </main>
 
-    <script src="/static/app.js"></script>
+    <script>
+      const RECENT_KEY = "qr-generator-recent";
+      const MAX_RECENT = 6;
+      const state = { token: "", shortUrl: "", clearUpdateExpiry: false, logoDataUrl: "" };
+
+      const $ = (selector) => document.querySelector(selector);
+      const els = {
+        createForm: $("#create-form"),
+        createUrl: $("#create-url"),
+        createExpiry: $("#create-expiry"),
+        clearCreateExpiry: $("#clear-create-expiry"),
+        emptyState: $("#empty-state"),
+        resultCard: $("#result-card"),
+        qrImage: $("#qr-image"),
+        logoPreview: $("#logo-preview"),
+        statusPill: $("#status-pill"),
+        tokenTitle: $("#token-title"),
+        shortUrl: $("#short-url"),
+        originalUrl: $("#original-url"),
+        copyUrlButton: $("#copy-url-button"),
+        copyTokenButton: $("#copy-token-button"),
+        downloadPngButton: $("#download-png-button"),
+        downloadSvgButton: $("#download-svg-button"),
+        tokenInput: $("#token-input"),
+        loadButton: $("#load-button"),
+        analyticsButton: $("#analytics-button"),
+        deleteButton: $("#delete-button"),
+        updateForm: $("#update-form"),
+        updateUrl: $("#update-url"),
+        updateExpiry: $("#update-expiry"),
+        clearUpdateExpiry: $("#clear-update-expiry"),
+        message: $("#message"),
+        details: $("#details"),
+        createdAt: $("#created-at"),
+        updatedAt: $("#updated-at"),
+        expiresAt: $("#expires-at"),
+        analytics: $("#analytics"),
+        totalScans: $("#total-scans"),
+        scanDays: $("#scan-days"),
+        recentList: $("#recent-list"),
+        clearRecentButton: $("#clear-recent-button"),
+        fgColor: $("#fg-color"),
+        bgColor: $("#bg-color"),
+        eccLevel: $("#ecc-level"),
+        logoInput: $("#logo-input"),
+      };
+
+      renderRecent();
+
+      els.createForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        await withBusy(event.submitter, async () => {
+          const payload = { url: els.createUrl.value.trim() };
+          const expiry = toIsoDatetime(els.createExpiry.value);
+          if (expiry) payload.expires_at = expiry;
+
+          const created = await api("/api/qr/create", {
+            method: "POST",
+            body: JSON.stringify(payload),
+          });
+          const info = await api(`/api/qr/${encodeURIComponent(created.token)}`);
+
+          showResult({
+            token: created.token,
+            original_url: created.original_url,
+            short_url: created.short_url,
+            qr_code_url: created.qr_code_url,
+          });
+          setUpdateFields(info);
+          renderDetails(info);
+          addRecent(created.token, created.original_url);
+          showMessage("Created.", "success");
+        });
+      });
+
+      els.loadButton.addEventListener("click", async () => {
+        await withBusy(els.loadButton, async () => {
+          await loadToken(readToken());
+          showMessage("Loaded.", "success");
+        });
+      });
+
+      els.tokenInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          els.loadButton.click();
+        }
+      });
+
+      els.updateForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        await withBusy(event.submitter, async () => {
+          const token = readToken();
+          const payload = {};
+          if (els.updateUrl.value.trim()) payload.url = els.updateUrl.value.trim();
+          if (state.clearUpdateExpiry) {
+            payload.expires_at = null;
+          } else if (els.updateExpiry.value) {
+            payload.expires_at = toIsoDatetime(els.updateExpiry.value);
+          }
+
+          if (!Object.keys(payload).length) {
+            showMessage("No changes.", "error");
+            return;
+          }
+
+          const info = await api(`/api/qr/${encodeURIComponent(token)}`, {
+            method: "PATCH",
+            body: JSON.stringify(payload),
+          });
+
+          state.clearUpdateExpiry = false;
+          showResult({ token, original_url: info.original_url });
+          setUpdateFields(info);
+          renderDetails(info);
+          addRecent(token, info.original_url);
+          showMessage("Updated.", "success");
+        });
+      });
+
+      els.deleteButton.addEventListener("click", async () => {
+        await withBusy(els.deleteButton, async () => {
+          const token = readToken();
+          if (!window.confirm(`Delete token ${token}?`)) return;
+          await api(`/api/qr/${encodeURIComponent(token)}`, { method: "DELETE" });
+          removeRecent(token);
+          els.statusPill.textContent = "Deleted";
+          els.statusPill.classList.remove("hidden");
+          els.statusPill.className = "rounded-md border border-red-900/60 bg-red-950/30 px-2 py-1 text-[11px] font-medium text-red-200";
+          els.analytics.classList.add("hidden");
+          showMessage("Deleted.", "success");
+        });
+      });
+
+      els.analyticsButton.addEventListener("click", async () => {
+        await withBusy(els.analyticsButton, async () => {
+          const token = readToken();
+          const analytics = await api(`/api/qr/${encodeURIComponent(token)}/analytics`);
+          renderAnalytics(analytics);
+          showMessage("Analytics loaded.", "success");
+        });
+      });
+
+      els.copyUrlButton.addEventListener("click", () => copyText(state.shortUrl, "Copied URL."));
+      els.copyTokenButton.addEventListener("click", () => copyText(state.token, "Copied token."));
+      els.downloadPngButton.addEventListener("click", () => downloadQr("png"));
+      els.downloadSvgButton.addEventListener("click", () => downloadQr("svg"));
+      els.clearCreateExpiry.addEventListener("click", () => (els.createExpiry.value = ""));
+      els.clearUpdateExpiry.addEventListener("click", () => {
+        els.updateExpiry.value = "";
+        state.clearUpdateExpiry = true;
+        showMessage("Expiration cleared.", "success");
+      });
+      els.clearRecentButton.addEventListener("click", () => {
+        localStorage.removeItem(RECENT_KEY);
+        renderRecent();
+      });
+
+      [els.fgColor, els.bgColor, els.eccLevel].forEach((input) => {
+        input.addEventListener("input", () => {
+          if (state.token) refreshQrImage();
+        });
+      });
+
+      els.logoInput.addEventListener("change", () => {
+        const file = els.logoInput.files?.[0];
+        if (!file) {
+          state.logoDataUrl = "";
+          els.logoPreview.classList.add("hidden");
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          state.logoDataUrl = String(reader.result);
+          els.logoPreview.src = state.logoDataUrl;
+          els.logoPreview.classList.remove("hidden");
+        };
+        reader.readAsDataURL(file);
+      });
+
+      async function loadToken(token) {
+        const info = await api(`/api/qr/${encodeURIComponent(token)}`);
+        showResult({ token, original_url: info.original_url });
+        setUpdateFields(info);
+        renderDetails(info);
+        addRecent(token, info.original_url);
+      }
+
+      function showResult(data) {
+        const token = data.token;
+        state.token = token;
+        state.shortUrl = data.short_url || `${window.location.origin}/r/${token}`;
+        els.emptyState.classList.add("hidden");
+        els.resultCard.classList.remove("hidden");
+        els.statusPill.textContent = "Active";
+        els.statusPill.classList.remove("hidden");
+        els.statusPill.className = "rounded-md border border-emerald-900/60 bg-emerald-950/30 px-2 py-1 text-[11px] font-medium text-emerald-300";
+        els.tokenTitle.textContent = token;
+        els.shortUrl.textContent = state.shortUrl;
+        els.shortUrl.href = state.shortUrl;
+        els.originalUrl.textContent = data.original_url;
+        els.tokenInput.value = token;
+        refreshQrImage();
+      }
+
+      function refreshQrImage() {
+        if (!state.token) return;
+        els.qrImage.src = `${qrImageUrl("png")}&t=${Date.now()}`;
+      }
+
+      function qrImageUrl(format) {
+        const fg = els.fgColor.value.replace("#", "");
+        const bg = els.bgColor.value.replace("#", "");
+        const ecc = els.eccLevel.value;
+        return `/api/qr/${encodeURIComponent(state.token)}/image?format=${format}&fg=${fg}&bg=${bg}&ecc=${ecc}`;
+      }
+
+      async function downloadQr(format) {
+        await withBusy(format === "svg" ? els.downloadSvgButton : els.downloadPngButton, async () => {
+          const token = readToken();
+          const response = await fetch(qrImageUrl(format));
+          if (!response.ok) throw new Error(`Download failed: ${response.status}`);
+          const blob = format === "png" && state.logoDataUrl
+            ? await composePngWithLogo(await response.blob())
+            : await response.blob();
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `qr-${token}.${format}`;
+          document.body.append(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(url);
+          showMessage(`${format.toUpperCase()} downloaded.`, "success");
+        });
+      }
+
+      // Adds the optional logo to PNG export without changing server-side QR storage.
+      async function composePngWithLogo(blob) {
+        const qrBitmap = await createImageBitmap(blob);
+        const logoImage = await loadImage(state.logoDataUrl);
+        const canvas = document.createElement("canvas");
+        canvas.width = qrBitmap.width;
+        canvas.height = qrBitmap.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(qrBitmap, 0, 0);
+        const size = Math.round(canvas.width * 0.18);
+        const x = (canvas.width - size) / 2;
+        const y = (canvas.height - size) / 2;
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(x - 10, y - 10, size + 20, size + 20);
+        ctx.drawImage(logoImage, x, y, size, size);
+        return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      }
+
+      function loadImage(src) {
+        return new Promise((resolve, reject) => {
+          const image = new Image();
+          image.onload = () => resolve(image);
+          image.onerror = reject;
+          image.src = src;
+        });
+      }
+
+      function setUpdateFields(info) {
+        els.updateUrl.value = info.original_url || "";
+        els.updateExpiry.value = toLocalDatetime(info.expires_at);
+      }
+
+      function renderDetails(info) {
+        els.createdAt.textContent = formatDateTime(info.created_at);
+        els.updatedAt.textContent = formatDateTime(info.updated_at);
+        els.expiresAt.textContent = info.expires_at ? formatDateTime(info.expires_at) : "Never";
+        els.details.classList.remove("hidden");
+      }
+
+      function renderAnalytics(data) {
+        const days = data.scans_by_day || [];
+        const max = Math.max(1, ...days.map((day) => day.count));
+        els.totalScans.textContent = data.total_scans;
+        els.scanDays.replaceChildren(
+          ...days.map((day) => {
+            const row = document.createElement("div");
+            row.className = "grid grid-cols-[86px_1fr_32px] items-center gap-2 text-xs text-neutral-500";
+            row.innerHTML = `
+              <span>${day.date}</span>
+              <span class="h-1.5 overflow-hidden rounded-sm bg-neutral-900">
+                <span class="block h-full rounded-sm bg-neutral-200" style="width: ${Math.max(4, (day.count / max) * 100)}%"></span>
+              </span>
+              <strong class="text-right font-medium text-neutral-200">${day.count}</strong>
+            `;
+            return row;
+          })
+        );
+
+        if (!days.length) {
+          const empty = document.createElement("p");
+          empty.className = "text-sm text-neutral-500";
+          empty.textContent = "No scans.";
+          els.scanDays.replaceChildren(empty);
+        }
+        els.analytics.classList.remove("hidden");
+      }
+
+      function renderRecent() {
+        const items = getRecent();
+        if (!items.length) {
+          const empty = document.createElement("div");
+          empty.className = "rounded-md border border-dashed border-neutral-900 px-3 py-3 text-sm text-neutral-600";
+          empty.textContent = "No records.";
+          els.recentList.replaceChildren(empty);
+          return;
+        }
+
+        els.recentList.replaceChildren(
+          ...items.map((item) => {
+            const button = document.createElement("button");
+            button.className = "grid w-full grid-cols-[76px_1fr] gap-2 rounded-md border border-neutral-900 px-3 py-2 text-left transition hover:border-neutral-800 hover:bg-neutral-900/40";
+            button.type = "button";
+            button.addEventListener("click", async () => {
+              els.tokenInput.value = item.token;
+              await withBusy(button, async () => loadToken(item.token));
+            });
+            button.innerHTML = `
+              <span class="font-mono text-xs font-semibold text-neutral-200">${item.token}</span>
+              <span class="truncate text-xs text-neutral-500">${item.url}</span>
+            `;
+            return button;
+          })
+        );
+      }
+
+      function getRecent() {
+        try {
+          return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
+        } catch {
+          return [];
+        }
+      }
+
+      function addRecent(token, url) {
+        const next = [
+          { token, url, saved_at: new Date().toISOString() },
+          ...getRecent().filter((item) => item.token !== token),
+        ].slice(0, MAX_RECENT);
+        localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+        renderRecent();
+      }
+
+      function removeRecent(token) {
+        localStorage.setItem(
+          RECENT_KEY,
+          JSON.stringify(getRecent().filter((item) => item.token !== token))
+        );
+        renderRecent();
+      }
+
+      async function api(path, options = {}) {
+        const response = await fetch(path, {
+          headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+          ...options,
+        });
+        const contentType = response.headers.get("content-type") || "";
+        const payload = contentType.includes("application/json")
+          ? await response.json()
+          : await response.text();
+        if (!response.ok) {
+          const detail = typeof payload === "object" && payload.detail ? payload.detail : response.statusText;
+          throw new Error(`${response.status} ${detail}`);
+        }
+        return payload;
+      }
+
+      function readToken() {
+        const value = els.tokenInput.value.trim() || state.token;
+        const token = extractToken(value);
+        if (!token) throw new Error("Enter a token first.");
+        els.tokenInput.value = token;
+        return token;
+      }
+
+      function extractToken(value) {
+        if (!value) return "";
+        const match = value.match(/\/r\/([^/?#]+)/);
+        return decodeURIComponent(match ? match[1] : value);
+      }
+
+      async function copyText(text, successMessage) {
+        if (!text) {
+          showMessage("Nothing to copy.", "error");
+          return;
+        }
+        await navigator.clipboard.writeText(text);
+        showMessage(successMessage, "success");
+      }
+
+      function toIsoDatetime(value) {
+        const clean = value.trim();
+        if (!clean) return null;
+
+        const match = clean.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?$/);
+        if (!match) {
+          throw new Error("Use YYYY-MM-DD HH:MM.");
+        }
+
+        const [, year, month, day, hour = "00", minute = "00"] = match;
+        const date = new Date(
+          Number(year),
+          Number(month) - 1,
+          Number(day),
+          Number(hour),
+          Number(minute)
+        );
+
+        if (Number.isNaN(date.getTime())) {
+          throw new Error("Invalid date.");
+        }
+
+        return date.toISOString();
+      }
+
+      function toLocalDatetime(value) {
+        if (!value) return "";
+        const date = new Date(value);
+        return formatInputDate(date);
+      }
+
+      function formatInputDate(date) {
+        const pad = (number) => String(number).padStart(2, "0");
+        return [
+          date.getFullYear(),
+          pad(date.getMonth() + 1),
+          pad(date.getDate()),
+        ].join("-") + `T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+      }
+
+      function formatDateTime(value) {
+        if (!value) return "-";
+        return new Intl.DateTimeFormat(undefined, {
+          dateStyle: "medium",
+          timeStyle: "short",
+        }).format(new Date(value));
+      }
+
+      async function withBusy(button, task) {
+        try {
+          if (button) button.disabled = true;
+          showMessage("");
+          await task();
+        } catch (error) {
+          showMessage(error.message, "error");
+        } finally {
+          if (button) button.disabled = false;
+        }
+      }
+
+      function showMessage(text, kind = "") {
+        els.message.textContent = text;
+        els.message.classList.toggle("hidden", !text);
+        els.message.className = `max-w-sm truncate text-right text-sm font-medium ${
+          kind === "error" ? "text-red-300" : kind === "success" ? "text-emerald-300" : "text-neutral-400"
+        } ${text ? "" : "hidden"}`;
+      }
+    </script>
   </body>
 </html>
