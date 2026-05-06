@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#050505" />
+    <title>QR Code Generator</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="product-lockup">
+          <div class="mark" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div>
+            <span class="eyebrow">Dynamic QR</span>
+            <h1>QR Code Generator</h1>
+          </div>
+        </div>
+      </header>
+
+      <section class="workspace" aria-label="QR code generator">
+        <div class="create-pane">
+          <div class="panel-heading">
+            <div>
+              <h2>Create</h2>
+              <p>Paste a URL. Get an editable QR code.</p>
+            </div>
+          </div>
+
+          <form id="create-form" class="stack">
+            <label class="field">
+              <span>Target URL</span>
+              <input
+                id="create-url"
+                name="url"
+                type="url"
+                inputmode="url"
+                placeholder="https://example.com"
+                required
+              />
+            </label>
+
+            <label class="field">
+              <span>Expiration</span>
+              <div class="input-action">
+                <input id="create-expiry" name="expires_at" type="datetime-local" />
+                <button id="clear-create-expiry" class="icon-button" type="button" title="Clear expiration" aria-label="Clear expiration">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </label>
+
+            <button class="primary-button" type="submit">
+              Create QR
+            </button>
+          </form>
+
+          <div class="recent-block">
+            <div class="section-title">
+              <h2>Recent</h2>
+              <button id="clear-recent-button" class="icon-button subtle" type="button" title="Clear recent" aria-label="Clear recent">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14" /></svg>
+              </button>
+            </div>
+            <div id="recent-list" class="recent-list"></div>
+          </div>
+        </div>
+
+        <aside class="result-pane" aria-live="polite">
+          <div id="empty-state" class="empty-state">
+            <div class="qr-placeholder" aria-hidden="true">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <p>Your QR preview appears here.</p>
+          </div>
+
+          <div id="result-card" class="result-card hidden">
+            <div class="preview-header">
+              <span>Preview</span>
+              <span id="status-pill" class="status-pill">Active</span>
+            </div>
+            <div class="qr-frame">
+              <img id="qr-image" alt="Generated QR code" />
+            </div>
+            <div class="result-meta">
+              <h2 id="token-title">Token</h2>
+              <a id="short-url" href="#" target="_blank" rel="noreferrer"></a>
+              <p id="original-url"></p>
+              <div class="quick-actions" aria-label="QR code actions">
+                <button id="copy-url-button" class="icon-button inverse" type="button" title="Copy short URL" aria-label="Copy short URL">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1M14 11a5 5 0 0 0-7.1 0l-2 2A5 5 0 0 0 12 20.1l1.1-1.1" /></svg>
+                </button>
+                <button id="copy-token-button" class="icon-button inverse" type="button" title="Copy token" aria-label="Copy token">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h8v8H8zM4 12h4m8 0h4M12 4v4m0 8v4" /></svg>
+                </button>
+                <button id="download-button" class="icon-button inverse" type="button" title="Download PNG" aria-label="Download PNG">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" /></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="manage-panel" aria-label="Manage existing QR code">
+        <div class="section-title">
+          <div>
+            <h2>Manage</h2>
+            <p>Paste a token or short URL.</p>
+          </div>
+        </div>
+
+        <div class="token-row">
+          <label class="field token-field">
+            <span>Token</span>
+            <input id="token-input" type="text" placeholder="Paste token or short URL" />
+          </label>
+          <button id="load-button" class="secondary-button" type="button">Load</button>
+          <button id="analytics-button" class="secondary-button" type="button">Analytics</button>
+          <button id="delete-button" class="danger-button" type="button">Delete</button>
+        </div>
+
+        <form id="update-form" class="update-grid">
+          <label class="field">
+            <span>New target URL</span>
+            <input id="update-url" type="url" inputmode="url" placeholder="https://new-url.com" />
+          </label>
+          <label class="field">
+            <span>New expiration</span>
+            <div class="input-action">
+              <input id="update-expiry" type="datetime-local" />
+              <button id="clear-update-expiry" class="icon-button" type="button" title="Remove expiration" aria-label="Remove expiration">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18M12 3v18" /></svg>
+              </button>
+            </div>
+          </label>
+          <button class="primary-button compact" type="submit">Update</button>
+        </form>
+
+        <div id="message" class="message" role="status"></div>
+
+        <div id="details" class="details hidden">
+          <div>
+            <span class="metric-label">Created</span>
+            <strong id="created-at">-</strong>
+          </div>
+          <div>
+            <span class="metric-label">Updated</span>
+            <strong id="updated-at">-</strong>
+          </div>
+          <div>
+            <span class="metric-label">Expires</span>
+            <strong id="expires-at">Never</strong>
+          </div>
+        </div>
+
+        <div id="analytics" class="analytics hidden">
+          <div>
+            <span class="metric-label">Total scans</span>
+            <strong id="total-scans">0</strong>
+          </div>
+          <div id="scan-days" class="scan-days"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
